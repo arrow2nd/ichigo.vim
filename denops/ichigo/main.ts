@@ -1,25 +1,19 @@
+import { Server } from "./libs/server.ts";
 import { Denops, open } from "./libs/deps.ts";
+
+let server: Server | undefined;
 
 // deno-lint-ignore require-await
 export async function main(denops: Denops): Promise<void> {
   denops.dispatcher = {
     async ichigo(): Promise<void> {
+      const path = await denops.call("expand", "%:p:h") as string;
       const bufnr = await denops.call("bufnr") as number;
-      const bufLines = await denops.call(
-        "getbufline",
-        bufnr,
-        1,
-        "$",
-      ) as string[];
 
-      const lines = bufLines.map((line, i) => `${(i + 1) * 10} ${line}`);
-      lines.push("RUN\n");
+      server = new Server(denops, path, bufnr);
+      server.start();
 
-      const url = `https://fukuno.jig.jp/app/IchigoJam/#${
-        encodeURIComponent(lines.join("\n"))
-      }`;
-
-      await open(url);
+      await open("http://localhost:3000");
     },
   };
 }
