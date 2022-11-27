@@ -1,2 +1,2 @@
-command! IchigoRun call denops#request('ichigo', 'run', [])
-command! IchigoClose call denops#request('ichigo', 'close', [])
+command! -buffer IchigoRun call denops#request('ichigo', 'run', [])
+command! -buffer IchigoClose call denops#request('ichigo', 'close', [])

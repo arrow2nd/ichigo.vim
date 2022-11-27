@@ -1,5 +1,6 @@
 import { Server } from "./libs/server.ts";
 import { Denops, filetype, getFreePort, open } from "./libs/deps.ts";
+import { removeAutoCmd, setAutoCmd } from "./libs/buf.ts";
 
 const DEFAULT_PORT = 3000;
 let server: Server | undefined;
@@ -17,6 +18,8 @@ export function main(denops: Denops) {
         server.close();
       }
 
+      await setAutoCmd(denops);
+
       const path = await denops.call("expand", "%:p") as string;
       const bufnr = await denops.call("bufnr") as number;
       server = new Server(denops, path, bufnr);
@@ -32,7 +35,9 @@ export function main(denops: Denops) {
         return;
       }
 
+      await removeAutoCmd(denops);
       await server.close();
+
       server = undefined;
     },
   };

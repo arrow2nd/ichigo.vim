@@ -26,7 +26,6 @@ export class Server {
     serve(this.router, { signal: this._abortCtrl.signal, port });
 
     const watcher = Deno.watchFs(this._path);
-    console.log(this._path);
 
     for await (const ev of watcher) {
       for (const path of ev.paths) {
