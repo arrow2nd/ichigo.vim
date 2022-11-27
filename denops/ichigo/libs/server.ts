@@ -1,25 +1,31 @@
-import { serve } from "https://deno.land/std@0.165.0/http/server.ts";
-import { Denops } from "./deps.ts";
+import { Denops, getFreePort, serve } from "./deps.ts";
+
+const DEFAULT_PORT = 3000;
 
 export class Server {
   private denops: Denops;
   private path: string;
   private bufnr: number;
-  private sockets: Map<string, WebSocket>;
+
   private html: string;
+  private port: number;
+  private sockets: Map<string, WebSocket>;
 
   public constructor(d: Denops, p: string, b: number) {
-    this.sockets = new Map();
     this.denops = d;
     this.path = p;
     this.bufnr = b;
+
     this.html = Deno.readTextFileSync(
       new URL("../assets/index.html", import.meta.url),
     );
+    this.port = 0;
+    this.sockets = new Map();
   }
 
   public start = async () => {
-    serve(this.router, { port: 3000 });
+    this.port = await getFreePort(DEFAULT_PORT);
+    serve(this.router, { port: this.port });
 
     const watcher = Deno.watchFs(this.path);
 
@@ -29,7 +35,6 @@ export class Server {
           continue;
         }
 
-        // console.log(`reload: ${ev.paths[0]}`);
         this.sendReload();
       }
     }

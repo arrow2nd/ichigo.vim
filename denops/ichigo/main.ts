@@ -3,8 +3,7 @@ import { Denops, open } from "./libs/deps.ts";
 
 let server: Server | undefined;
 
-// deno-lint-ignore require-await
-export async function main(denops: Denops): Promise<void> {
+export function main(denops: Denops) {
   denops.dispatcher = {
     async ichigo(): Promise<void> {
       const path = await denops.call("expand", "%:p:h") as string;
