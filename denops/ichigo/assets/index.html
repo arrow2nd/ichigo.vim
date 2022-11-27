@@ -6,14 +6,14 @@
   </head>
 
   <script type="module">
-    const addr = "ws://localhost:3000/ws";
+    const addr = `ws://${location.host}/ws`;
     const socket = new WebSocket(addr);
 
     socket.onmessage = ({ data }) => {
-      const json = JSON.parse(data);
+      const { body }= JSON.parse(data);
 
       const iframe = document.createElement("iframe");
-      iframe.setAttribute("src", `https://fukuno.jig.jp/app/IchigoJam/#${json.body}`);
+      iframe.setAttribute("src", `https://fukuno.jig.jp/app/IchigoJam/#${body}`);
       iframe.setAttribute("style" , "width: 100%; height: 100%; border: none;");
 
       const body = document.getElementById("body");

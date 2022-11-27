@@ -1,33 +1,31 @@
-import { Denops, getFreePort, serve } from "./deps.ts";
-
-const DEFAULT_PORT = 3000;
+import { getBuffer } from "./buf.ts";
+import { Denops, serve } from "./deps.ts";
 
 export class Server {
-  private denops: Denops;
-  private path: string;
-  private bufnr: number;
+  private _denops: Denops;
+  private _path: string;
+  private _bufnr: number;
 
-  private html: string;
-  private port: number;
-  private sockets: Map<string, WebSocket>;
+  private _abortCtrl: AbortController;
+  private _html: string;
+  private _sockets: Map<string, WebSocket>;
 
-  public constructor(d: Denops, p: string, b: number) {
-    this.denops = d;
-    this.path = p;
-    this.bufnr = b;
+  public constructor(denops: Denops, path: string, bufnr: number) {
+    this._denops = denops;
+    this._path = path;
+    this._bufnr = bufnr;
 
-    this.html = Deno.readTextFileSync(
+    this._abortCtrl = new AbortController();
+    this._html = Deno.readTextFileSync(
       new URL("../assets/index.html", import.meta.url),
     );
-    this.port = 0;
-    this.sockets = new Map();
+    this._sockets = new Map();
   }
 
-  public start = async () => {
-    this.port = await getFreePort(DEFAULT_PORT);
-    serve(this.router, { port: this.port });
+  public start = async (port: number) => {
+    serve(this.router, { signal: this._abortCtrl.signal, port });
 
-    const watcher = Deno.watchFs(this.path);
+    const watcher = Deno.watchFs(this._path);
 
     for await (const ev of watcher) {
       for (const path of ev.paths) {
@@ -40,6 +38,16 @@ export class Server {
     }
   };
 
+  public close = async () => {
+    this._abortCtrl.abort();
+
+    await Promise.all(
+      [...this._sockets.values()].map((s) => s.close()),
+    );
+
+    console.info("server is closed");
+  };
+
   private router = (req: Request): Response => {
     const { pathname } = new URL(req.url);
     const notFound = new Response("Not Found", { status: 404 });
@@ -49,7 +57,7 @@ export class Server {
     }
 
     if (pathname === "/") {
-      return new Response(this.html, {
+      return new Response(this._html, {
         status: 200,
         headers: { "content-type": "text/html" },
       });
@@ -60,16 +68,15 @@ export class Server {
       const uuid = crypto.randomUUID();
 
       socket.onopen = async () => {
-        // FIXME: undefindになる
-        const json = await this.getBuffer();
-        socket.send(JSON.stringify(json));
+        const json = await getBuffer(this._denops, this._bufnr);
+        socket.send(json);
       };
 
       socket.onclose = () => {
-        this.sockets.delete(uuid);
+        this._sockets.delete(uuid);
       };
 
-      this.sockets.set(uuid, socket);
+      this._sockets.set(uuid, socket);
 
       return response;
     }
@@ -78,26 +85,10 @@ export class Server {
   };
 
   private sendReload = async () => {
-    const json = await this.getBuffer();
+    const json = await getBuffer(this._denops, this._bufnr);
 
     await Promise.all(
-      [...this.sockets.values()].map((s) => s.send(json)),
+      [...this._sockets.values()].map((s) => s.send(json)),
     );
-  };
-
-  private getBuffer = async (): Promise<string> => {
-    const bufLines = await this.denops.call(
-      "getbufline",
-      this.bufnr,
-      1,
-      "$",
-    ) as string[];
-
-    const lines = bufLines.map((line, i) => `${(i + 1) * 10} ${line}`);
-    lines.push("RUN\n");
-
-    return JSON.stringify({
-      body: encodeURIComponent(lines.join("\n")),
-    });
   };
 }
