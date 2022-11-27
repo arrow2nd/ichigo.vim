@@ -23,7 +23,7 @@ Repo: https://github.com/arrow2nd/ichigo.vim
 ==============================================================================
 USAGE                                                          *ichigo-usage*
 
-The source code extension must be `.bas` `.basic`.
+The source code extension must be .bas or .basic
 
 ==============================================================================
 COMMANDS                                                     *ichigo-command*
