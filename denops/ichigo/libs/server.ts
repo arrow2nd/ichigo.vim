@@ -26,10 +26,11 @@ export class Server {
     serve(this.router, { signal: this._abortCtrl.signal, port });
 
     const watcher = Deno.watchFs(this._path);
+    console.log(this._path);
 
     for await (const ev of watcher) {
       for (const path of ev.paths) {
-        if (!/\.(te?xt|bas(ic)?)/i.test(path)) {
+        if (!/\.bas(ic)?/i.test(path)) {
           continue;
         }
 
@@ -64,24 +65,28 @@ export class Server {
     }
 
     if (pathname === "/ws") {
-      const { socket, response } = Deno.upgradeWebSocket(req);
-      const uuid = crypto.randomUUID();
-
-      socket.onopen = async () => {
-        const json = await getBuffer(this._denops, this._bufnr);
-        socket.send(json);
-      };
-
-      socket.onclose = () => {
-        this._sockets.delete(uuid);
-      };
-
-      this._sockets.set(uuid, socket);
-
-      return response;
+      return this.handleWebSocket(req);
     }
 
     return notFound;
+  };
+
+  private handleWebSocket = (req: Request) => {
+    const { socket, response } = Deno.upgradeWebSocket(req);
+    const uuid = crypto.randomUUID();
+
+    socket.onopen = async () => {
+      const json = await getBuffer(this._denops, this._bufnr);
+      socket.send(json);
+    };
+
+    socket.onclose = () => {
+      this._sockets.delete(uuid);
+    };
+
+    this._sockets.set(uuid, socket);
+
+    return response;
   };
 
   private sendReload = async () => {

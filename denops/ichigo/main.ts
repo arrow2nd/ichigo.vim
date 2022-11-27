@@ -1,5 +1,5 @@
 import { Server } from "./libs/server.ts";
-import { Denops, getFreePort, open } from "./libs/deps.ts";
+import { Denops, filetype, getFreePort, open } from "./libs/deps.ts";
 
 const DEFAULT_PORT = 3000;
 let server: Server | undefined;
@@ -7,11 +7,17 @@ let server: Server | undefined;
 export function main(denops: Denops) {
   denops.dispatcher = {
     async run(): Promise<void> {
+      if (await filetype.get(denops) !== "basic") {
+        console.error("file type is not basic");
+        return;
+      }
+
+      // 既に起動していたら閉じる
       if (server) {
         server.close();
       }
 
-      const path = await denops.call("expand", "%:p:h") as string;
+      const path = await denops.call("expand", "%:p") as string;
       const bufnr = await denops.call("bufnr") as number;
       server = new Server(denops, path, bufnr);
 
