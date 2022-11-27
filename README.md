@@ -2,6 +2,8 @@
 
 🍓 IchigoJam web for Vim (Unofficial)
 
+![demo](https://user-images.githubusercontent.com/44780846/204134827-85e66023-50ad-447c-a1cb-9a5a9d3cca45.gif)
+
 ## Requirements
 
 - [denops.vim](https://github.com/vim-denops/denops.vim)
