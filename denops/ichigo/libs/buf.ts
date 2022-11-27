@@ -8,14 +8,19 @@ export async function getBuffer(denops: Denops, bufnr: number) {
     "$",
   ) as string[];
 
-  // TODO: 行番号がある場合を考慮
-  const lines = bufLines.map((line, i) => `${(i + 1) * 10} ${line}`);
+  const lines = bufLines.map((line, i) => {
+    // 行番号がある
+    if (/^\s*\d+ /.test(line)) {
+      return line;
+    }
 
-  // TODO: 最終行がRUNで終わる場合には付与しない
-  lines.push("RUN\n");
+    return `${(i + 1) * 10} ${line}`;
+  });
+
+  lines.push("RUN");
 
   return JSON.stringify({
-    body: encodeURIComponent(lines.join("\n")),
+    body: encodeURIComponent(lines.join("\n") + "\n"),
   });
 }
 
