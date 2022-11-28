@@ -1,5 +1,7 @@
 # ichigo.vim
 
+[![Denopendabot](https://github.com/arrow2nd/ichigo.vim/actions/workflows/denopendabot.yml/badge.svg?branch=main)](https://github.com/arrow2nd/ichigo.vim/actions/workflows/denopendabot.yml)
+
 🍓 IchigoJam web for Vim (Unofficial)
 
 ![demo](https://user-images.githubusercontent.com/44780846/204134827-85e66023-50ad-447c-a1cb-9a5a9d3cca45.gif)
